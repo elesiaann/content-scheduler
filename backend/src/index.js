@@ -41,10 +41,15 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: err.message || 'Internal server error' });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+// Start server only outside Vercel (serverless exports the app directly)
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+    startScheduler();
+  });
+} else {
+  // On Vercel, start the scheduler once on cold start
   startScheduler();
-});
+}
 
 module.exports = app;
