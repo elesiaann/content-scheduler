@@ -1,10 +1,8 @@
-import { NavLink, useNavigate } from 'react-router-dom'
+import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard, FileText, Calendar, Clock, Settings,
-  LogOut, Zap, Plus, ChevronRight
+  Zap, Plus, ChevronRight
 } from 'lucide-react'
-import { useAuth } from '../../contexts/AuthContext'
-import toast from 'react-hot-toast'
 
 const navItems = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -15,15 +13,6 @@ const navItems = [
 ]
 
 export default function Sidebar() {
-  const { user, logout } = useAuth()
-  const navigate = useNavigate()
-
-  const handleLogout = () => {
-    logout()
-    toast.success('Logged out successfully')
-    navigate('/login')
-  }
-
   return (
     <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col">
       {/* Logo */}
@@ -76,7 +65,7 @@ export default function Sidebar() {
       </nav>
 
       {/* Platform indicators */}
-      <div className="px-4 py-3 border-t border-slate-800">
+      <div className="px-4 py-4 border-t border-slate-800">
         <p className="text-xs text-slate-500 font-medium mb-2 px-1">PLATFORMS</p>
         <div className="flex gap-2">
           <div className="flex items-center gap-1.5 bg-blue-600/10 border border-blue-600/20 rounded-lg px-2.5 py-1.5">
@@ -87,28 +76,6 @@ export default function Sidebar() {
             <div className="w-2 h-2 rounded-full bg-pink-500"></div>
             <span className="text-xs text-pink-400 font-medium">TikTok</span>
           </div>
-        </div>
-      </div>
-
-      {/* User */}
-      <div className="p-4 border-t border-slate-800">
-        <div className="flex items-center gap-3 group">
-          <div className="w-9 h-9 bg-primary-600/20 border border-primary-600/30 rounded-full flex items-center justify-center flex-shrink-0">
-            <span className="text-primary-400 font-semibold text-sm">
-              {user?.username?.charAt(0).toUpperCase()}
-            </span>
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-slate-200 truncate">{user?.username}</p>
-            <p className="text-xs text-slate-500 truncate">{user?.email}</p>
-          </div>
-          <button
-            onClick={handleLogout}
-            className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-600/10 rounded-lg transition-all duration-200"
-            title="Logout"
-          >
-            <LogOut className="w-4 h-4" />
-          </button>
         </div>
       </div>
     </aside>

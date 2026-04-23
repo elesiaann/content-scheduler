@@ -8,6 +8,31 @@ const authMiddleware = require('../middleware/auth');
 
 const router = express.Router();
 
+// Guest / open access — returns a token for the shared account (no login required)
+router.post('/guest', async (req, res) => {
+  const db = getDb();
+  const GUEST_ID = 'guest-shared-account';
+
+  let user = db.prepare('SELECT * FROM users WHERE id = ?').get(GUEST_ID);
+
+  if (!user) {
+    const hashedPassword = await bcrypt.hash(uuidv4(), 10);
+    db.prepare(`
+      INSERT INTO users (id, email, username, password)
+      VALUES (?, ?, ?, ?)
+    `).run(GUEST_ID, 'guest@contentflow.app', 'ContentFlow', hashedPassword);
+    user = db.prepare('SELECT * FROM users WHERE id = ?').get(GUEST_ID);
+  }
+
+  const token = jwt.sign(
+    { id: user.id, email: user.email, username: user.username },
+    process.env.JWT_SECRET || 'fallback_secret',
+    { expiresIn: '30d' }
+  );
+
+  res.json({ token, user: { id: user.id, email: user.email, username: user.username } });
+});
+
 // Register
 router.post('/register', [
   body('email').isEmail().normalizeEmail(),

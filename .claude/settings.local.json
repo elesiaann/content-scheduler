@@ -15,7 +15,8 @@
       "Bash(node src/index.js)",
       "Bash(curl -s http://localhost:5000/api/health)",
       "Bash(taskkill /F /FI \"IMAGENAME eq node.exe\")",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Read(//c/Users/Aftab Tech Zone/Downloads/**)"
     ]
   }
 }
