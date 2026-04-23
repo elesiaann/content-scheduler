@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh repo:*)",
+      "Bash(gh auth:*)",
+      "Bash(npm --version)",
+      "Bash(npm install:*)",
+      "Bash(node -e \"const db = require\\('better-sqlite3'\\)\\(':memory:'\\); console.log\\('SQLite works:', db.prepare\\('SELECT 1 as n'\\).get\\(\\)\\)\")",
+      "Bash(npm uninstall:*)",
+      "Bash(node -e \"const { Database } = require\\('node-sqlite3-wasm'\\); const db = new Database\\(':memory:'\\); console.log\\('WASM SQLite works:', db.prepare\\('SELECT 1 as n'\\).get\\(\\)\\)\")",
+      "Bash(node -e ':*)",
+      "Bash(echo \"PORT=5000\")",
+      "Bash(echo \"JWT_SECRET=dev_secret_change_in_production\")",
+      "Bash(echo \"FRONTEND_URL=http://localhost:5173\")",
+      "Bash(node src/index.js)",
+      "Bash(curl -s http://localhost:5000/api/health)",
+      "Bash(taskkill /F /FI \"IMAGENAME eq node.exe\")"
+    ]
+  }
+}

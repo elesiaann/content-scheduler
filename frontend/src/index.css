@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-slate-950 text-slate-100 font-sans antialiased;
+  }
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-slate-900;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-slate-700 rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-slate-600;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-slate-900 border border-slate-800 rounded-2xl;
+  }
+  .btn-primary {
+    @apply bg-primary-600 hover:bg-primary-700 text-white font-medium px-4 py-2 rounded-xl transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-secondary {
+    @apply bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium px-4 py-2 rounded-xl transition-all duration-200 flex items-center gap-2;
+  }
+  .btn-danger {
+    @apply bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-600/30 font-medium px-4 py-2 rounded-xl transition-all duration-200 flex items-center gap-2;
+  }
+  .input {
+    @apply bg-slate-800 border border-slate-700 text-slate-100 rounded-xl px-4 py-2.5 w-full focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent placeholder:text-slate-500 transition-all duration-200;
+  }
+  .label {
+    @apply text-sm font-medium text-slate-300 mb-1.5 block;
+  }
+  .badge {
+    @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+}
+
+/* Custom animations */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* TikTok gradient */
+.tiktok-gradient {
+  background: linear-gradient(135deg, #010101 0%, #1a0a2e 50%, #010101 100%);
+}
+
+/* Facebook gradient */
+.facebook-gradient {
+  background: linear-gradient(135deg, #0d47a1 0%, #1565c0 50%, #1877f2 100%);
+}
