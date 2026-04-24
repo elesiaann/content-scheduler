@@ -1,7 +1,5 @@
 import axios from 'axios'
 
-// In production on Vercel, backend is at /_/backend/api
-// Locally, Vite proxies /api → http://localhost:5000/api
 const BASE_URL = import.meta.env.VITE_API_URL || '/api'
 
 const api = axios.create({
@@ -16,14 +14,15 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-// Handle 401 globally
+// On 401 — clear token and reload (no redirect to /login since that page is gone)
 api.interceptors.response.use(
   (res) => res,
   (err) => {
     if (err.response?.status === 401) {
       localStorage.removeItem('token')
       localStorage.removeItem('user')
-      window.location.href = '/login'
+      // Reload so AuthContext auto-creates a new guest session
+      window.location.reload()
     }
     return Promise.reject(err)
   }

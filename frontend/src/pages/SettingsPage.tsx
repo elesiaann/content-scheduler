@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Facebook, Music2, Link, Unlink, CheckCircle,
-  AlertCircle, Shield, ExternalLink, Loader
+  AlertCircle, Shield, ExternalLink, RefreshCw
 } from 'lucide-react'
 import api from '../utils/api'
 import { PlatformConnection } from '../types'
@@ -25,9 +25,16 @@ export default function SettingsPage() {
     setConnecting('tiktok')
     try {
       const res = await api.get('/platforms/tiktok/oauth-url')
-      window.location.href = res.data.url
+      if (res.data?.url) {
+        // Open in same tab — standard OAuth flow
+        window.location.assign(res.data.url)
+      } else {
+        toast.error('No redirect URL returned from server')
+        setConnecting(null)
+      }
     } catch (err: any) {
-      toast.error(err.response?.data?.error || 'Could not start TikTok login. Check your TikTok Client Key in .env')
+      const msg = err?.response?.data?.error || 'TikTok credentials (TIKTOK_CLIENT_KEY) are not configured yet'
+      toast.error(msg)
       setConnecting(null)
     }
   }
@@ -36,9 +43,15 @@ export default function SettingsPage() {
     setConnecting('facebook')
     try {
       const res = await api.get('/platforms/facebook/oauth-url')
-      window.location.href = res.data.url
+      if (res.data?.url) {
+        window.location.assign(res.data.url)
+      } else {
+        toast.error('No redirect URL returned from server')
+        setConnecting(null)
+      }
     } catch (err: any) {
-      toast.error(err.response?.data?.error || 'Could not start Facebook login. Check your Facebook App ID in .env')
+      const msg = err?.response?.data?.error || 'Facebook credentials (FACEBOOK_APP_ID) are not configured yet'
+      toast.error(msg)
       setConnecting(null)
     }
   }
@@ -71,13 +84,12 @@ export default function SettingsPage() {
 
           {/* TikTok */}
           <div className={`p-5 rounded-xl border transition-all ${ttConn?.is_connected ? 'border-pink-600/40 bg-pink-600/5' : 'border-slate-700 bg-slate-800/30'}`}>
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center justify-between gap-4 flex-wrap">
               <div className="flex items-center gap-4">
-                {/* TikTok logo */}
                 <div className="w-14 h-14 tiktok-gradient rounded-2xl flex items-center justify-center relative overflow-hidden flex-shrink-0 shadow-lg">
                   <Music2 className="w-7 h-7 text-white relative z-10" />
-                  <div className="absolute -right-1 -top-1 w-6 h-6 bg-tiktok-cyan/40 rounded-full blur-sm" />
-                  <div className="absolute -left-1 -bottom-1 w-6 h-6 bg-tiktok-pink/40 rounded-full blur-sm" />
+                  <div className="absolute -right-1 -top-1 w-6 h-6 bg-cyan-400/30 rounded-full blur-sm" />
+                  <div className="absolute -left-1 -bottom-1 w-6 h-6 bg-rose-500/30 rounded-full blur-sm" />
                 </div>
                 <div>
                   <p className="font-bold text-white text-base">TikTok</p>
@@ -106,31 +118,29 @@ export default function SettingsPage() {
               ) : (
                 <button
                   onClick={handleTikTokConnect}
-                  disabled={connecting === 'tiktok'}
-                  className="flex items-center gap-2 bg-[#010101] hover:bg-[#1a1a1a] border border-slate-600 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all disabled:opacity-60 shadow-md"
+                  disabled={connecting !== null}
+                  className="flex items-center gap-2 bg-black hover:bg-slate-900 border border-slate-600 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all disabled:opacity-60 shadow-md"
                 >
-                  {connecting === 'tiktok' ? (
-                    <Loader className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Music2 className="w-4 h-4 text-[#fe2c55]" />
-                  )}
-                  {connecting === 'tiktok' ? 'Redirecting...' : 'Login with TikTok'}
+                  {connecting === 'tiktok'
+                    ? <RefreshCw className="w-4 h-4 animate-spin" />
+                    : <Music2 className="w-4 h-4 text-rose-500" />
+                  }
+                  {connecting === 'tiktok' ? 'Redirecting to TikTok...' : 'Login with TikTok'}
                   {connecting !== 'tiktok' && <ExternalLink className="w-3 h-3 text-slate-400" />}
                 </button>
               )}
             </div>
 
             {!ttConn?.is_connected && (
-              <div className="mt-4 pt-4 border-t border-slate-700/50 text-xs text-slate-500 space-y-1">
-                <p>Clicking <strong className="text-slate-400">"Login with TikTok"</strong> will redirect you to TikTok to authorize this app.</p>
-                <p>Permissions requested: <code className="bg-slate-800 px-1 rounded">video.publish</code> <code className="bg-slate-800 px-1 rounded">video.upload</code></p>
-              </div>
+              <p className="mt-4 text-xs text-slate-500 pt-4 border-t border-slate-700/50">
+                You'll be redirected to TikTok to authorize this app. Permissions: <code className="bg-slate-800 px-1 rounded">video.publish</code> <code className="bg-slate-800 px-1 rounded">video.upload</code>
+              </p>
             )}
           </div>
 
           {/* Facebook */}
           <div className={`p-5 rounded-xl border transition-all ${fbConn?.is_connected ? 'border-blue-600/40 bg-blue-600/5' : 'border-slate-700 bg-slate-800/30'}`}>
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center justify-between gap-4 flex-wrap">
               <div className="flex items-center gap-4">
                 <div className="w-14 h-14 facebook-gradient rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg">
                   <Facebook className="w-7 h-7 text-white" />
@@ -164,25 +174,23 @@ export default function SettingsPage() {
               ) : (
                 <button
                   onClick={handleFacebookConnect}
-                  disabled={connecting === 'facebook'}
+                  disabled={connecting !== null}
                   className="flex items-center gap-2 bg-[#1877f2] hover:bg-[#1565c0] text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all disabled:opacity-60 shadow-md"
                 >
-                  {connecting === 'facebook' ? (
-                    <Loader className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Facebook className="w-4 h-4" />
-                  )}
-                  {connecting === 'facebook' ? 'Redirecting...' : 'Continue with Facebook'}
+                  {connecting === 'facebook'
+                    ? <RefreshCw className="w-4 h-4 animate-spin" />
+                    : <Facebook className="w-4 h-4" />
+                  }
+                  {connecting === 'facebook' ? 'Redirecting to Facebook...' : 'Continue with Facebook'}
                   {connecting !== 'facebook' && <ExternalLink className="w-3 h-3 opacity-70" />}
                 </button>
               )}
             </div>
 
             {!fbConn?.is_connected && (
-              <div className="mt-4 pt-4 border-t border-slate-700/50 text-xs text-slate-500 space-y-1">
-                <p>Clicking <strong className="text-slate-400">"Continue with Facebook"</strong> will redirect you to Facebook to authorize this app.</p>
-                <p>Permissions requested: <code className="bg-slate-800 px-1 rounded">pages_manage_posts</code> <code className="bg-slate-800 px-1 rounded">pages_read_engagement</code></p>
-              </div>
+              <p className="mt-4 text-xs text-slate-500 pt-4 border-t border-slate-700/50">
+                You'll be redirected to Facebook to authorize this app. Permissions: <code className="bg-slate-800 px-1 rounded">pages_manage_posts</code> <code className="bg-slate-800 px-1 rounded">pages_read_engagement</code>
+              </p>
             )}
           </div>
         </div>
@@ -195,18 +203,16 @@ export default function SettingsPage() {
           <h3 className="font-semibold text-white">Security & Privacy</h3>
         </div>
         <div className="space-y-3 text-sm text-slate-400">
-          <div className="flex items-start gap-3 p-3 bg-slate-800/50 rounded-xl">
-            <CheckCircle className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
-            <p>Your access tokens are stored securely and only used to publish content on your behalf.</p>
-          </div>
-          <div className="flex items-start gap-3 p-3 bg-slate-800/50 rounded-xl">
-            <CheckCircle className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
-            <p>We never sell or share your credentials with third parties.</p>
-          </div>
-          <div className="flex items-start gap-3 p-3 bg-slate-800/50 rounded-xl">
-            <CheckCircle className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
-            <p>You can disconnect any platform at any time from this page.</p>
-          </div>
+          {[
+            'Your access tokens are stored securely and only used to publish content on your behalf.',
+            'We never sell or share your credentials with third parties.',
+            'You can disconnect any platform at any time from this page.',
+          ].map((text, i) => (
+            <div key={i} className="flex items-start gap-3 p-3 bg-slate-800/50 rounded-xl">
+              <CheckCircle className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
+              <p>{text}</p>
+            </div>
+          ))}
         </div>
       </div>
 
