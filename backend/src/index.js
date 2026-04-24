@@ -22,7 +22,7 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 // Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// Routes
+// API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/posts', postsRoutes);
 app.use('/api/platforms', platformsRoutes);
@@ -31,6 +31,19 @@ app.use('/api/platforms', platformsRoutes);
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+
+// On Vercel: serve the compiled Vite frontend for all non-API routes
+// (Vercel routes all requests through this function)
+if (process.env.VERCEL) {
+  const frontendDist = path.join(__dirname, '../../frontend/dist');
+  const fs = require('fs');
+  if (fs.existsSync(frontendDist)) {
+    app.use(express.static(frontendDist));
+    app.get('*', (req, res) => {
+      res.sendFile(path.join(frontendDist, 'index.html'));
+    });
+  }
+}
 
 // Error handler
 app.use((err, req, res, next) => {
