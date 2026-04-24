@@ -2,7 +2,10 @@ const { Database } = require('node-sqlite3-wasm');
 const path = require('path');
 const fs = require('fs');
 
-const DB_PATH = path.join(__dirname, '../../data/scheduler.db');
+// On Vercel only /tmp is writable; locally use the data/ folder
+const DB_PATH = process.env.VERCEL
+  ? '/tmp/scheduler.db'
+  : path.join(__dirname, '../../data/scheduler.db');
 
 const dataDir = path.dirname(DB_PATH);
 if (!fs.existsSync(dataDir)) {
