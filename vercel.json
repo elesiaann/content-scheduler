@@ -1,11 +1,9 @@
 {
   "buildCommand": "cd frontend && npm install && npm run build",
-  "functions": {
-    "api/index.js": {
-      "includeFiles": "frontend/dist/**"
-    }
-  },
+  "outputDirectory": "frontend/dist",
   "routes": [
-    { "src": "/(.*)", "dest": "/api/index.js" }
+    { "src": "/api/(.*)", "dest": "/api/index.js" },
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }

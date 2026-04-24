@@ -32,18 +32,20 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// On Vercel: serve the compiled Vite frontend for all non-API routes
-// (Vercel routes all requests through this function)
-if (process.env.VERCEL) {
-  const frontendDist = path.join(__dirname, '../../frontend/dist');
+// Diagnostic endpoint — shows what Express sees about the request
+app.get('/api/info', (req, res) => {
   const fs = require('fs');
-  if (fs.existsSync(frontendDist)) {
-    app.use(express.static(frontendDist));
-    app.get('*', (req, res) => {
-      res.sendFile(path.join(frontendDist, 'index.html'));
-    });
-  }
-}
+  const frontendDist = require('path').join(__dirname, '../../frontend/dist');
+  res.json({
+    url: req.url,
+    path: req.path,
+    dirname: __dirname,
+    frontendDist,
+    frontendExists: fs.existsSync(frontendDist),
+    env: { VERCEL: process.env.VERCEL, NODE_ENV: process.env.NODE_ENV },
+  });
+});
+
 
 // Error handler
 app.use((err, req, res, next) => {
