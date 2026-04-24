@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
-  Facebook, Music2, Link2, Unlink2, CheckCircle,
+  Facebook, Music2, Link, Unlink, CheckCircle,
   AlertCircle, Shield, ExternalLink, Loader
 } from 'lucide-react'
 import api from '../utils/api'
@@ -60,7 +60,7 @@ export default function SettingsPage() {
       {/* Platform connections */}
       <div className="card p-6">
         <div className="flex items-center gap-3 mb-2">
-          <Link2 className="w-5 h-5 text-primary-400" />
+          <Link className="w-5 h-5 text-primary-400" />
           <h3 className="font-semibold text-white">Connected Platforms</h3>
         </div>
         <p className="text-slate-400 text-sm mb-6">
@@ -100,7 +100,7 @@ export default function SettingsPage() {
                   onClick={() => handleDisconnect('tiktok')}
                   className="flex items-center gap-2 text-sm text-red-400 hover:text-red-300 bg-red-600/10 hover:bg-red-600/20 border border-red-600/20 px-3 py-2 rounded-xl transition-all"
                 >
-                  <Unlink2 className="w-4 h-4" />
+                  <Unlink className="w-4 h-4" />
                   Disconnect
                 </button>
               ) : (
@@ -158,7 +158,7 @@ export default function SettingsPage() {
                   onClick={() => handleDisconnect('facebook')}
                   className="flex items-center gap-2 text-sm text-red-400 hover:text-red-300 bg-red-600/10 hover:bg-red-600/20 border border-red-600/20 px-3 py-2 rounded-xl transition-all"
                 >
-                  <Unlink2 className="w-4 h-4" />
+                  <Unlink className="w-4 h-4" />
                   Disconnect
                 </button>
               ) : (
