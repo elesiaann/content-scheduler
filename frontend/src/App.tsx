@@ -8,6 +8,8 @@ import CalendarPage from './pages/CalendarPage'
 import SettingsPage from './pages/SettingsPage'
 import CreatePostPage from './pages/CreatePostPage'
 import EditPostPage from './pages/EditPostPage'
+import TermsPage from './pages/TermsPage'
+import PrivacyPage from './pages/PrivacyPage'
 import { Zap } from 'lucide-react'
 
 function AppRoutes() {
@@ -38,6 +40,9 @@ function AppRoutes() {
         <Route path="/calendar" element={<CalendarPage />} />
         <Route path="/settings" element={<SettingsPage />} />
       </Route>
+      {/* Legal pages — no layout wrapper */}
+      <Route path="/terms" element={<TermsPage />} />
+      <Route path="/privacy" element={<PrivacyPage />} />
       {/* Catch-all */}
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>

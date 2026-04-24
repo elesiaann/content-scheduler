@@ -16,7 +16,10 @@
       "Bash(curl -s http://localhost:5000/api/health)",
       "Bash(taskkill /F /FI \"IMAGENAME eq node.exe\")",
       "Bash(npm run:*)",
-      "Read(//c/Users/Aftab Tech Zone/Downloads/**)"
+      "Read(//c/Users/Aftab Tech Zone/Downloads/**)",
+      "Bash(ls dist/tiktok*)",
+      "WebFetch(domain:content-scheduler-6pmbwj4ed-eleshas-projects.vercel.app)",
+      "WebFetch(domain:content-scheduler-git-master-eleshas-projects.vercel.app)"
     ]
   }
 }
