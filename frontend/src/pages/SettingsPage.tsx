@@ -1,150 +1,16 @@
-import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Facebook, Music2, Link, Unlink, ExternalLink, CheckCircle, AlertCircle, Key, User, Shield } from 'lucide-react'
+import {
+  Facebook, Music2, Link2, Unlink2, CheckCircle,
+  AlertCircle, Shield, ExternalLink, Loader
+} from 'lucide-react'
 import api from '../utils/api'
 import { PlatformConnection } from '../types'
-import { useAuth } from '../contexts/AuthContext'
 import toast from 'react-hot-toast'
-
-function ConnectModal({ platform, onClose, onConnect }: {
-  platform: 'facebook' | 'tiktok'
-  onClose: () => void
-  onConnect: (data: any) => void
-}) {
-  const [accessToken, setAccessToken] = useState('')
-  const [pageId, setPageId] = useState('')
-  const [pageName, setPageName] = useState('')
-  const [refreshToken, setRefreshToken] = useState('')
-  const [isConnecting, setIsConnecting] = useState(false)
-
-  const handleConnect = async () => {
-    if (!accessToken.trim()) {
-      toast.error('Access token is required')
-      return
-    }
-    setIsConnecting(true)
-    try {
-      await onConnect({ access_token: accessToken, page_id: pageId, page_name: pageName, refresh_token: refreshToken })
-      onClose()
-    } finally {
-      setIsConnecting(false)
-    }
-  }
-
-  return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="card w-full max-w-lg p-6 animate-slide-in">
-        <div className="flex items-center gap-3 mb-6">
-          <div className={`w-10 h-10 ${platform === 'facebook' ? 'bg-blue-600/20' : 'bg-pink-600/20'} rounded-xl flex items-center justify-center`}>
-            {platform === 'facebook'
-              ? <Facebook className="w-5 h-5 text-blue-400" />
-              : <Music2 className="w-5 h-5 text-pink-400" />
-            }
-          </div>
-          <div>
-            <h3 className="font-semibold text-white">Connect {platform === 'facebook' ? 'Facebook' : 'TikTok'}</h3>
-            <p className="text-xs text-slate-400">Enter your API credentials</p>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          <div>
-            <label className="label">Access Token *</label>
-            <input
-              type="password"
-              value={accessToken}
-              onChange={e => setAccessToken(e.target.value)}
-              placeholder={platform === 'facebook' ? 'Facebook Page Access Token' : 'TikTok Access Token'}
-              className="input"
-            />
-          </div>
-
-          {platform === 'facebook' && (
-            <>
-              <div>
-                <label className="label">Page ID</label>
-                <input
-                  type="text"
-                  value={pageId}
-                  onChange={e => setPageId(e.target.value)}
-                  placeholder="Your Facebook Page ID"
-                  className="input"
-                />
-              </div>
-              <div>
-                <label className="label">Page Name</label>
-                <input
-                  type="text"
-                  value={pageName}
-                  onChange={e => setPageName(e.target.value)}
-                  placeholder="Your Facebook Page Name"
-                  className="input"
-                />
-              </div>
-            </>
-          )}
-
-          {platform === 'tiktok' && (
-            <div>
-              <label className="label">Refresh Token</label>
-              <input
-                type="password"
-                value={refreshToken}
-                onChange={e => setRefreshToken(e.target.value)}
-                placeholder="TikTok Refresh Token (optional)"
-                className="input"
-              />
-            </div>
-          )}
-
-          <div className={`p-4 rounded-xl ${platform === 'facebook' ? 'bg-blue-600/10 border border-blue-600/20' : 'bg-pink-600/10 border border-pink-600/20'}`}>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              {platform === 'facebook' ? (
-                <>
-                  <strong className="text-blue-400">How to get your token:</strong><br />
-                  1. Go to <a href="https://developers.facebook.com" target="_blank" rel="noopener noreferrer" className="text-blue-400 underline">Facebook Developer Console</a><br />
-                  2. Create an app with Pages API access<br />
-                  3. Generate a Page Access Token with <code className="bg-slate-800 px-1 rounded">pages_manage_posts</code> permission<br />
-                  4. Find your Page ID in your Facebook Page settings
-                </>
-              ) : (
-                <>
-                  <strong className="text-pink-400">How to get your token:</strong><br />
-                  1. Go to <a href="https://developers.tiktok.com" target="_blank" rel="noopener noreferrer" className="text-pink-400 underline">TikTok Developer Portal</a><br />
-                  2. Create an app and get credentials<br />
-                  3. Complete OAuth flow to get access token<br />
-                  4. Ensure <code className="bg-slate-800 px-1 rounded">video.publish</code> scope is enabled
-                </>
-              )}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex gap-3 mt-6">
-          <button onClick={onClose} className="btn-secondary flex-1 justify-center">
-            Cancel
-          </button>
-          <button
-            onClick={handleConnect}
-            disabled={isConnecting || !accessToken.trim()}
-            className={`flex-1 justify-center font-medium px-4 py-2 rounded-xl transition-all disabled:opacity-50 flex items-center gap-2 ${
-              platform === 'facebook'
-                ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                : 'bg-pink-600 hover:bg-pink-700 text-white'
-            }`}
-          >
-            {isConnecting ? 'Connecting...' : 'Connect'}
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
+import { useState } from 'react'
 
 export default function SettingsPage() {
-  const { user } = useAuth()
   const queryClient = useQueryClient()
-  const [showConnect, setShowConnect] = useState<'facebook' | 'tiktok' | null>(null)
+  const [connecting, setConnecting] = useState<'facebook' | 'tiktok' | null>(null)
 
   const { data } = useQuery({
     queryKey: ['platforms'],
@@ -155,19 +21,30 @@ export default function SettingsPage() {
   const fbConn = connections.find(c => c.platform === 'facebook')
   const ttConn = connections.find(c => c.platform === 'tiktok')
 
-  const handleConnect = async (platform: 'facebook' | 'tiktok', data: any) => {
+  const handleTikTokConnect = async () => {
+    setConnecting('tiktok')
     try {
-      await api.post(`/platforms/${platform}/connect`, data)
-      queryClient.invalidateQueries({ queryKey: ['platforms'] })
-      toast.success(`${platform === 'facebook' ? 'Facebook' : 'TikTok'} connected successfully!`)
+      const res = await api.get('/platforms/tiktok/oauth-url')
+      window.location.href = res.data.url
     } catch (err: any) {
-      toast.error(err.response?.data?.error || 'Connection failed')
-      throw err
+      toast.error(err.response?.data?.error || 'Could not start TikTok login. Check your TikTok Client Key in .env')
+      setConnecting(null)
+    }
+  }
+
+  const handleFacebookConnect = async () => {
+    setConnecting('facebook')
+    try {
+      const res = await api.get('/platforms/facebook/oauth-url')
+      window.location.href = res.data.url
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || 'Could not start Facebook login. Check your Facebook App ID in .env')
+      setConnecting(null)
     }
   }
 
   const handleDisconnect = async (platform: 'facebook' | 'tiktok') => {
-    if (!confirm(`Disconnect ${platform}? Your scheduled posts won't be published to this platform.`)) return
+    if (!confirm(`Disconnect ${platform}? Scheduled posts won't be published to this platform.`)) return
     try {
       await api.delete(`/platforms/${platform}`)
       queryClient.invalidateQueries({ queryKey: ['platforms'] })
@@ -179,54 +56,38 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6 max-w-2xl animate-fade-in">
-      {/* Account info */}
-      <div className="card p-6">
-        <div className="flex items-center gap-3 mb-5">
-          <User className="w-5 h-5 text-primary-400" />
-          <h3 className="font-semibold text-white">Account</h3>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 bg-primary-600/20 border border-primary-600/30 rounded-2xl flex items-center justify-center">
-            <span className="text-primary-400 font-bold text-2xl">
-              {user?.username?.charAt(0).toUpperCase()}
-            </span>
-          </div>
-          <div>
-            <p className="font-semibold text-white text-lg">{user?.username}</p>
-            <p className="text-slate-400 text-sm">{user?.email}</p>
-          </div>
-        </div>
-      </div>
 
       {/* Platform connections */}
       <div className="card p-6">
-        <div className="flex items-center gap-3 mb-5">
-          <Link className="w-5 h-5 text-primary-400" />
-          <div>
-            <h3 className="font-semibold text-white">Connected Platforms</h3>
-            <p className="text-slate-400 text-xs mt-0.5">Connect your social accounts to start publishing</p>
-          </div>
+        <div className="flex items-center gap-3 mb-2">
+          <Link2 className="w-5 h-5 text-primary-400" />
+          <h3 className="font-semibold text-white">Connected Platforms</h3>
         </div>
+        <p className="text-slate-400 text-sm mb-6">
+          Connect your social accounts to schedule and auto-publish content.
+        </p>
 
         <div className="space-y-4">
-          {/* Facebook */}
-          <div className={`p-4 rounded-xl border ${fbConn?.is_connected ? 'border-blue-600/30 bg-blue-600/5' : 'border-slate-700'}`}>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 facebook-gradient rounded-xl flex items-center justify-center">
-                  <Facebook className="w-6 h-6 text-white" />
+
+          {/* TikTok */}
+          <div className={`p-5 rounded-xl border transition-all ${ttConn?.is_connected ? 'border-pink-600/40 bg-pink-600/5' : 'border-slate-700 bg-slate-800/30'}`}>
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                {/* TikTok logo */}
+                <div className="w-14 h-14 tiktok-gradient rounded-2xl flex items-center justify-center relative overflow-hidden flex-shrink-0 shadow-lg">
+                  <Music2 className="w-7 h-7 text-white relative z-10" />
+                  <div className="absolute -right-1 -top-1 w-6 h-6 bg-tiktok-cyan/40 rounded-full blur-sm" />
+                  <div className="absolute -left-1 -bottom-1 w-6 h-6 bg-tiktok-pink/40 rounded-full blur-sm" />
                 </div>
                 <div>
-                  <p className="font-semibold text-white">Facebook</p>
-                  {fbConn?.is_connected ? (
-                    <div className="flex items-center gap-1.5 mt-0.5">
+                  <p className="font-bold text-white text-base">TikTok</p>
+                  {ttConn?.is_connected ? (
+                    <div className="flex items-center gap-1.5 mt-1">
                       <CheckCircle className="w-3.5 h-3.5 text-green-400" />
-                      <span className="text-xs text-green-400">
-                        Connected{fbConn.page_name ? ` — ${fbConn.page_name}` : ''}
-                      </span>
+                      <span className="text-xs text-green-400 font-medium">Account connected</span>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-1.5 mt-0.5">
+                    <div className="flex items-center gap-1.5 mt-1">
                       <AlertCircle className="w-3.5 h-3.5 text-slate-500" />
                       <span className="text-xs text-slate-500">Not connected</span>
                     </div>
@@ -234,52 +95,57 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <div className="flex gap-2">
-                {fbConn?.is_connected ? (
-                  <button
-                    onClick={() => handleDisconnect('facebook')}
-                    className="btn-danger text-sm px-3 py-1.5"
-                  >
-                    <Unlink className="w-3.5 h-3.5" />
-                    Disconnect
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => setShowConnect('facebook')}
-                    className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-1.5 rounded-xl transition-all flex items-center gap-2"
-                  >
-                    <Link className="w-3.5 h-3.5" />
-                    Connect
-                  </button>
-                )}
-              </div>
+              {ttConn?.is_connected ? (
+                <button
+                  onClick={() => handleDisconnect('tiktok')}
+                  className="flex items-center gap-2 text-sm text-red-400 hover:text-red-300 bg-red-600/10 hover:bg-red-600/20 border border-red-600/20 px-3 py-2 rounded-xl transition-all"
+                >
+                  <Unlink2 className="w-4 h-4" />
+                  Disconnect
+                </button>
+              ) : (
+                <button
+                  onClick={handleTikTokConnect}
+                  disabled={connecting === 'tiktok'}
+                  className="flex items-center gap-2 bg-[#010101] hover:bg-[#1a1a1a] border border-slate-600 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all disabled:opacity-60 shadow-md"
+                >
+                  {connecting === 'tiktok' ? (
+                    <Loader className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Music2 className="w-4 h-4 text-[#fe2c55]" />
+                  )}
+                  {connecting === 'tiktok' ? 'Redirecting...' : 'Login with TikTok'}
+                  {connecting !== 'tiktok' && <ExternalLink className="w-3 h-3 text-slate-400" />}
+                </button>
+              )}
             </div>
 
-            {fbConn?.is_connected && (
-              <div className="mt-3 pt-3 border-t border-slate-800 flex gap-4 text-xs text-slate-500">
-                {fbConn.page_id && <span>Page ID: <span className="text-slate-300">{fbConn.page_id}</span></span>}
+            {!ttConn?.is_connected && (
+              <div className="mt-4 pt-4 border-t border-slate-700/50 text-xs text-slate-500 space-y-1">
+                <p>Clicking <strong className="text-slate-400">"Login with TikTok"</strong> will redirect you to TikTok to authorize this app.</p>
+                <p>Permissions requested: <code className="bg-slate-800 px-1 rounded">video.publish</code> <code className="bg-slate-800 px-1 rounded">video.upload</code></p>
               </div>
             )}
           </div>
 
-          {/* TikTok */}
-          <div className={`p-4 rounded-xl border ${ttConn?.is_connected ? 'border-pink-600/30 bg-pink-600/5' : 'border-slate-700'}`}>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 tiktok-gradient rounded-xl flex items-center justify-center relative overflow-hidden">
-                  <Music2 className="w-6 h-6 text-white relative z-10" />
-                  <div className="absolute -right-1 -top-1 w-5 h-5 bg-tiktok-cyan/30 rounded-full blur-sm" />
-                  <div className="absolute -left-1 -bottom-1 w-5 h-5 bg-tiktok-pink/30 rounded-full blur-sm" />
+          {/* Facebook */}
+          <div className={`p-5 rounded-xl border transition-all ${fbConn?.is_connected ? 'border-blue-600/40 bg-blue-600/5' : 'border-slate-700 bg-slate-800/30'}`}>
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 facebook-gradient rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg">
+                  <Facebook className="w-7 h-7 text-white" />
                 </div>
                 <div>
-                  <p className="font-semibold text-white">TikTok</p>
-                  {ttConn?.is_connected ? (
-                    <div className="flex items-center gap-1.5 mt-0.5">
+                  <p className="font-bold text-white text-base">Facebook</p>
+                  {fbConn?.is_connected ? (
+                    <div className="flex items-center gap-1.5 mt-1">
                       <CheckCircle className="w-3.5 h-3.5 text-green-400" />
-                      <span className="text-xs text-green-400">Connected</span>
+                      <span className="text-xs text-green-400 font-medium">
+                        {fbConn.page_name ? `Page: ${fbConn.page_name}` : 'Account connected'}
+                      </span>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-1.5 mt-0.5">
+                    <div className="flex items-center gap-1.5 mt-1">
                       <AlertCircle className="w-3.5 h-3.5 text-slate-500" />
                       <span className="text-xs text-slate-500">Not connected</span>
                     </div>
@@ -287,45 +153,37 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <div className="flex gap-2">
-                {ttConn?.is_connected ? (
-                  <button
-                    onClick={() => handleDisconnect('tiktok')}
-                    className="btn-danger text-sm px-3 py-1.5"
-                  >
-                    <Unlink className="w-3.5 h-3.5" />
-                    Disconnect
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => setShowConnect('tiktok')}
-                    className="bg-pink-600 hover:bg-pink-700 text-white text-sm font-medium px-4 py-1.5 rounded-xl transition-all flex items-center gap-2"
-                  >
-                    <Link className="w-3.5 h-3.5" />
-                    Connect
-                  </button>
-                )}
-              </div>
+              {fbConn?.is_connected ? (
+                <button
+                  onClick={() => handleDisconnect('facebook')}
+                  className="flex items-center gap-2 text-sm text-red-400 hover:text-red-300 bg-red-600/10 hover:bg-red-600/20 border border-red-600/20 px-3 py-2 rounded-xl transition-all"
+                >
+                  <Unlink2 className="w-4 h-4" />
+                  Disconnect
+                </button>
+              ) : (
+                <button
+                  onClick={handleFacebookConnect}
+                  disabled={connecting === 'facebook'}
+                  className="flex items-center gap-2 bg-[#1877f2] hover:bg-[#1565c0] text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all disabled:opacity-60 shadow-md"
+                >
+                  {connecting === 'facebook' ? (
+                    <Loader className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Facebook className="w-4 h-4" />
+                  )}
+                  {connecting === 'facebook' ? 'Redirecting...' : 'Continue with Facebook'}
+                  {connecting !== 'facebook' && <ExternalLink className="w-3 h-3 opacity-70" />}
+                </button>
+              )}
             </div>
-          </div>
-        </div>
-      </div>
 
-      {/* API Info */}
-      <div className="card p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <Key className="w-5 h-5 text-primary-400" />
-          <h3 className="font-semibold text-white">API Configuration</h3>
-        </div>
-        <div className="space-y-3 text-sm text-slate-400">
-          <div className="p-3 bg-slate-800 rounded-xl">
-            <p className="font-medium text-slate-200 mb-1">Backend Configuration</p>
-            <p>Configure your <code className="bg-slate-700 px-1 rounded text-xs">backend/.env</code> file with:</p>
-            <ul className="mt-2 space-y-1 text-xs">
-              <li>• <code className="text-primary-300">FACEBOOK_APP_ID</code> and <code className="text-primary-300">FACEBOOK_APP_SECRET</code></li>
-              <li>• <code className="text-primary-300">TIKTOK_CLIENT_KEY</code> and <code className="text-primary-300">TIKTOK_CLIENT_SECRET</code></li>
-              <li>• <code className="text-primary-300">JWT_SECRET</code> — a strong random string</li>
-            </ul>
+            {!fbConn?.is_connected && (
+              <div className="mt-4 pt-4 border-t border-slate-700/50 text-xs text-slate-500 space-y-1">
+                <p>Clicking <strong className="text-slate-400">"Continue with Facebook"</strong> will redirect you to Facebook to authorize this app.</p>
+                <p>Permissions requested: <code className="bg-slate-800 px-1 rounded">pages_manage_posts</code> <code className="bg-slate-800 px-1 rounded">pages_read_engagement</code></p>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -334,27 +192,24 @@ export default function SettingsPage() {
       <div className="card p-6">
         <div className="flex items-center gap-3 mb-4">
           <Shield className="w-5 h-5 text-primary-400" />
-          <h3 className="font-semibold text-white">Security</h3>
+          <h3 className="font-semibold text-white">Security & Privacy</h3>
         </div>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between p-3 bg-slate-800 rounded-xl">
-            <div>
-              <p className="text-sm font-medium text-slate-200">Session</p>
-              <p className="text-xs text-slate-500">JWT token expires in 7 days</p>
-            </div>
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+        <div className="space-y-3 text-sm text-slate-400">
+          <div className="flex items-start gap-3 p-3 bg-slate-800/50 rounded-xl">
+            <CheckCircle className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
+            <p>Your access tokens are stored securely and only used to publish content on your behalf.</p>
+          </div>
+          <div className="flex items-start gap-3 p-3 bg-slate-800/50 rounded-xl">
+            <CheckCircle className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
+            <p>We never sell or share your credentials with third parties.</p>
+          </div>
+          <div className="flex items-start gap-3 p-3 bg-slate-800/50 rounded-xl">
+            <CheckCircle className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
+            <p>You can disconnect any platform at any time from this page.</p>
           </div>
         </div>
       </div>
 
-      {/* Connect modal */}
-      {showConnect && (
-        <ConnectModal
-          platform={showConnect}
-          onClose={() => setShowConnect(null)}
-          onConnect={(data) => handleConnect(showConnect, data)}
-        />
-      )}
     </div>
   )
 }

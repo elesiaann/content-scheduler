@@ -10,6 +10,8 @@ import CreatePostPage from './pages/CreatePostPage'
 import EditPostPage from './pages/EditPostPage'
 import TermsPage from './pages/TermsPage'
 import PrivacyPage from './pages/PrivacyPage'
+import TikTokCallbackPage from './pages/TikTokCallbackPage'
+import FacebookCallbackPage from './pages/FacebookCallbackPage'
 import { Zap } from 'lucide-react'
 
 function AppRoutes() {
@@ -40,6 +42,9 @@ function AppRoutes() {
         <Route path="/calendar" element={<CalendarPage />} />
         <Route path="/settings" element={<SettingsPage />} />
       </Route>
+      {/* OAuth callbacks — no layout wrapper */}
+      <Route path="/settings/tiktok/callback" element={<TikTokCallbackPage />} />
+      <Route path="/settings/facebook/callback" element={<FacebookCallbackPage />} />
       {/* Legal pages — no layout wrapper */}
       <Route path="/terms" element={<TermsPage />} />
       <Route path="/privacy" element={<PrivacyPage />} />
