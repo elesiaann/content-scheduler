@@ -47,9 +47,8 @@ if (!process.env.VERCEL) {
     console.log(`Server running on http://localhost:${PORT}`);
     startScheduler();
   });
-} else {
-  // On Vercel, start the scheduler once on cold start
-  startScheduler();
 }
+// On Vercel serverless, the function sleeps between requests so a cron
+// scheduler won't fire reliably — skip it.
 
 module.exports = app;
