@@ -10,9 +10,13 @@ const authMiddleware = require('../middleware/auth');
 const router = express.Router();
 
 // Configure multer for media uploads
-const uploadDir = path.join(__dirname, '../../uploads');
+// On Vercel only /tmp is writable; locally use the uploads/ folder
+const uploadDir = process.env.VERCEL
+  ? '/tmp/uploads'
+  : path.join(__dirname, '../../uploads');
+
 if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
+  try { fs.mkdirSync(uploadDir, { recursive: true }); } catch (_) {}
 }
 
 const storage = multer.diskStorage({

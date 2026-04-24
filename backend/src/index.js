@@ -19,8 +19,9 @@ app.use(cors({
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Serve uploaded files
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+// Serve uploaded files (on Vercel only /tmp is writable)
+const uploadDir = process.env.VERCEL ? '/tmp/uploads' : path.join(__dirname, '../uploads');
+app.use('/uploads', express.static(uploadDir));
 
 // API Routes
 app.use('/api/auth', authRoutes);
